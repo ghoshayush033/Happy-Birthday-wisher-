@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Special Surprise For You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Pacifico&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #ff4d6d;
+      --secondary: #ff758f;
+      --accent: #ffb703;
+      --bg: #0b091a;
+      --card-bg: rgba(255, 255, 255, 0.07);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --text: #ffffff;
+      --text-muted: #c9d1d9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(123, 44, 191, 0.3) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(255, 77, 109, 0.25) 0px, transparent 50%);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .balloon-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .balloon {
+      position: absolute;
+      bottom: -120px;
+      width: 50px;
+      height: 65px;
+      border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+      opacity: 0.9;
+      animation: floatUp 8s linear infinite;
+    }
+
+    .balloon::after {
+      content: "";
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.9;
+      }
+      100% {
+        transform: translateY(-120vh) rotate(15deg);
+        opacity: 0;
+      }
+    }
+
+    .wrapper {
+      position: relative;
+      width: 90%;
+      max-width: 440px;
+      z-index: 20;
+      perspective: 1000px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .card-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff 0%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .custom-input {
+      width: 100%;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .custom-input:focus {
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 20px rgba(255, 77, 109, 0.35);
+    }
+
+    .btn-action {
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, #c9184a 100%);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(255, 77, 109, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .btn-action:active {
+      transform: scale(0.98);
+    }
+
+    .stage {
+      display: none;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .stage.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .birthday-heading {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.2rem;
+      color: var(--accent);
+      text-shadow: 0 0 15px rgba(255, 183, 3, 0.4);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .person-name {
+      display: block;
+      color: #fff;
+      font-size: 2.5rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      text-shadow: 0 0 20px rgba(255, 77, 109, 0.8);
+      word-break: break-word;
+      margin-top: 4px;
+    }
+
+    .cake-container {
+      position: relative;
+      width: 160px;
+      height: 140px;
+      margin: 30px auto 20px;
+      cursor: pointer;
+    }
+
+    .cake-layer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #ff758f, #e01e37);
+      border-radius: 12px;
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
+    }
+
+    .layer-bottom {
+      bottom: 0;
+      width: 150px;
+      height: 48px;
+    }
+
+    .layer-middle {
+      bottom: 42px;
+      width: 110px;
+      height: 40px;
+      background: linear-gradient(135deg, #ffb3c1, #ff4d6d);
+    }
+
+    .frosting {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 12px;
+      background: #fff;
+      border-radius: 12px 12px 6px 6px;
+    }
+
+    .candle {
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 32px;
+      background: repeating-linear-gradient(45deg, #fff, #fff 4px, #3a86ff 4px, #3a86ff 8px);
+      border-radius: 4px;
+    }
+
+    .flame {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 20px;
+      background: radial-gradient(circle at 50% 80%, #ffbe0b 20%, #fb5607 70%);
+      border-radius: 50% 50% 20% 20%;
+      box-shadow: 0 0 16px rgba(255, 190, 11, 0.9);
+      animation: flicker 0.6s infinite alternate;
+      transform-origin: center bottom;
+      transition: all 0.3s ease;
+    }
+
+    .flame.extinguished {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.1);
+    }
+
+    @keyframes flicker {
+      0% { transform: translateX(-50%) rotate(-2deg) scale(1); }
+      100% { transform: translateX(-50%) rotate(2deg) scale(1.08); }
+    }
+
+    .cake-hint {
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-top: 6px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .wish-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      margin-top: 15px;
+    }
+
+    .audio-toggle {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+  <div class="balloon-layer" id="balloon-container"></div>
+
+  <div class="wrapper">
+    <!-- Step 1: Input Screen -->
+    <div class="card stage active" id="stage-input">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🎁</div>
+      <h1 class="card-title">Identity Verification</h1>
+      <p class="card-desc">Enter your name to unlock the customized greeting crafted specifically for you.</p>
+      
+      <form id="greeting-form" onsubmit="event.preventDefault(); proceed();">
+        <div class="input-group">
+          <input 
+            type="text" 
+            id="name-input" 
+            class="custom-input" 
+            placeholder="Type your name here..." 
+            autocomplete="off"
+            spellcheck="false"
+            required 
+          />
+        </div>
+        <button type="submit" class="btn-action">Unlock Greeting</button>
+      </form>
+    </div>
+
+    <!-- Step 2: Birthday Showcase Screen -->
+    <div class="card stage" id="stage-celebration">
+      <div class="birthday-heading">Happy Birthday</div>
+      <div class="person-name" id="display-name">Friend</div>
+
+      <div class="cake-container" id="cake-target" title="Tap to blow the candle!">
+        <div class="candle">
+          <div class="flame" id="candle-flame"></div>
+        </div>
+        <div class="cake-layer layer-middle">
+          <div class="frosting"></div>
+        </div>
+        <div class="cake-layer layer-bottom">
+          <div class="frosting"></div>
+        </div>
+      </div>
+      
+      <div class="cake-hint" id="cake-hint-text">👆 Tap cake to blow candle</div>
+
+      <div class="wish-box" id="wish-message">
+        Wishing you massive success, good health, and an incredible year ahead. May all your goals hit the target!
+      </div>
+
+      <button class="audio-toggle" id="audio-ctl">
+        <span id="audio-icon">🔊</span> <span id="audio-text">Melody playing</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- Canvas Confetti Engine ---
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let confetti = [];
+    const colors = ['#ff4d6d', '#ff758f', '#ffb703', '#3a86ff', '#06d6a0', '#ffffff'];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 8 + 4;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.speedX = Math.random() * 6 - 3;
+        this.speedY = Math.random() * -8 - 4;
+        this.gravity = 0.25;
+        this.rotation = Math.random() * 360;
+        this.rotSpeed = Math.random() * 10 - 5;
+        this.opacity = 1;
+      }
+      update() {
+        this.speedY += this.gravity;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.rotation += this.rotSpeed;
+        if (this.y > canvas.height - 20) {
+          this.opacity -= 0.02;
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate((this.rotation * Math.PI) / 180);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = Math.max(0, this.opacity);
+        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 0.6);
+        ctx.restore();
+      }
+    }
+
+    function triggerConfettiBurst() {
+      const originX = canvas.width / 2;
+      const originY = canvas.height * 0.45;
+      for (let i = 0; i < 90; i++) {
+        confetti.push(new Particle(originX, originY));
+      }
+    }
+
+    function renderConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = confetti.length - 1; i >= 0; i--) {
+        confetti[i].update();
+        confetti[i].draw();
+        if (confetti[i].opacity <= 0 || confetti[i].y > canvas.height) {
+          confetti.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
+
+    // --- Dynamic Balloon Generator ---
+    function spawnBalloons() {
+      const container = document.getElementById('balloon-container');
+      const palette = ['#ff4d6d', '#ffb703', '#3a86ff', '#7209b7', '#06d6a0'];
+      for (let i = 0; i < 14; i++) {
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        balloon.style.left = Math.random() * 95 + '%';
+        balloon.style.backgroundColor = palette[i % palette.length];
+        balloon.style.animationDelay = (Math.random() * 6) + 's';
+        balloon.style.animationDuration = (7 + Math.random() * 5) + 's';
+        container.appendChild(balloon);
+      }
+    }
+
+    // --- Procedural Web Audio API Synthesizer (Happy Birthday Melody) ---
+    let audioCtx = null;
+    let isMuted = false;
+
+    const notes = {
+      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23,
+      G4: 392.00, A4: 440.00, B4: 493.88, C5: 523.25
+    };
+
+    const tune = [
+      { note: notes.C4, dur: 0.35 },
+      { note: notes.C4, dur: 0.2 },
+      { note: notes.D4, dur: 0.5 },
+      { note: notes.C4, dur: 0.5 },
+      { note: notes.F4, dur: 0.5 },
+      { note: notes.E4, dur: 0.8 },
+
+      { note: notes.C4, dur: 0.35 },
+      { note: notes.C4, dur: 0.2 },
+      { note: notes.D4, dur: 0.5 },
+      { note: notes.C4, dur: 0.5 },
+      { note: notes.G4, dur: 0.5 },
+      { note: notes.F4, dur: 0.8 },
+
+      { note: notes.C4, dur: 0.35 },
+      { note: notes.C4, dur: 0.2 },
+      { note: notes.C5, dur: 0.5 },
+      { note: notes.A4, dur: 0.5 },
+      { note: notes.F4, dur: 0.5 },
+      { note: notes.E4, dur: 0.5 },
+      { note: notes.D4, dur: 0.7 }
+    ];
+
+    function playNote(freq, start, duration) {
+      if (isMuted) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.18, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(start);
+      osc.stop(start + duration);
+    }
+
+    function startMelody() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      let cursor = audioCtx.currentTime + 0.2;
+      tune.forEach(step => {
+        playNote(step.note, cursor, step.dur);
+        cursor += step.dur + 0.08;
+      });
+    }
+
+    // --- Audio Control Button ---
+    document.getElementById('audio-ctl').addEventListener('click', () => {
+      isMuted = !isMuted;
+      document.getElementById('audio-icon').textContent = isMuted ? '🔇' : '🔊';
+      document.getElementById('audio-text').textContent = isMuted ? 'Muted' : 'Melody active';
+      if (!isMuted) startMelody();
+    });
+
+    // --- Interactive Candle Blowing ---
+    let candleBlown = false;
+    document.getElementById('cake-target').addEventListener('click', () => {
+      if (candleBlown) return;
+      candleBlown = true;
+      const flame = document.getElementById('candle-flame');
+      flame.classList.add('extinguished');
+      document.getElementById('cake-hint-text').textContent = '🎉 Make a wish!';
+      triggerConfettiBurst();
+      triggerConfettiBurst();
+    });
+
+    // --- Flow Controller ---
+    function proceed() {
+      const nameField = document.getElementById('name-input');
+      const cleanName = nameField.value.trim();
+
+      if (!cleanName) return;
+
+      document.getElementById('display-name').textContent = cleanName;
+
+      // Transition stages
+      document.getElementById('stage-input').classList.remove('active');
+      setTimeout(() => {
+        document.getElementById('stage-celebration').classList.add('active');
+        spawnBalloons();
+        triggerConfettiBurst();
+        startMelody();
+      }, 300);
+    }
+  </script>
+</body>
+</html>
